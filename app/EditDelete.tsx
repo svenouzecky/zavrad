@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/app/supabase";
+import type { User } from "@supabase/supabase-js";
 
 export default function EditDelete({data}) {
-	const [user, setUser] = useState(null);
+	const [user, setUser] = useState<User | null>(null);
 	const [primatelj, setPrimatelj] = useState("");
 	const [iban, setIban] = useState("");
 	const [iznos, setIznos] = useState("");
