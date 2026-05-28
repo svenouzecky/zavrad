@@ -9,13 +9,13 @@ export default function EditDelete({data}) {
 	const [primatelj, setPrimatelj] = useState("");
 	const [iban, setIban] = useState("");
 	const [iznos, setIznos] = useState("");
-	var [rokPlacanja, setRokPlacanja] = useState(null);
+	var [rokPlacanja, setRokPlacanja] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
 	const [isErrorOpen, setIsErrorOpen] = useState(false);
 	const [isSuccessOpen, setSuccessOpen] = useState(false);
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-	const [idRacuna, setIdRacuna] = useState(null);
-	const [deleteId, setDeleteId] = useState(null);
+	const [idRacuna, setIdRacuna] = useState(0);
+	const [deleteId, setDeleteId] = useState(0);
   const handleEdit = async (id) => {
   	if(user) {
 	  	setIsOpen(true);

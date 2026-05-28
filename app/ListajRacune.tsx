@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/app/supabase";
+import type { User } from "@supabase/supabase-js";
 import EditDelete from './EditDelete';
 
 export default function ListajRacune({ sortKey, sortDir, search, searchKey, searchMin, searchMax } : any) {
 	
 	const [racuni, setRacuni] = useState([]);
-	const [user, setUser] = useState(null);
+	const [user, setUser] = useState<User | null>(null);
 	
 	
 	const filtered = racuni.filter((item) => {

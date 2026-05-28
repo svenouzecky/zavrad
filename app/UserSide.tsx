@@ -3,11 +3,12 @@ import Link from "next/link";
 
 import { supabase } from "@/app/supabase";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";  
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 export default function UserSide() {
 	const router = useRouter();
-	const [user, setUser] = useState(null);
+	const [user, setUser] = useState<User | null>(null);
 	
 	const handleLogout = async () => {
     	await supabase.auth.signOut();
