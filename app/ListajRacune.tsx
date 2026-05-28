@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/app/supabase";
 import EditDelete from './EditDelete';
 
-export default function ListajRacune({ sortKey, sortDir, search, searchKey, searchMin, searchMax }) {
+export default function ListajRacune({ sortKey, sortDir, search, searchKey, searchMin, searchMax } : any) {
 	
 	const [racuni, setRacuni] = useState([]);
 	const [user, setUser] = useState(null);

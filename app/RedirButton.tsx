@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from "next/navigation";
 
-export default function RedirButton({url, ime}) {
+export default function RedirButton({url, ime}: any) {
 	const router = useRouter()
 	
 	const handleClick = () => {
