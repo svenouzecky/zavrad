@@ -9,7 +9,7 @@ export default function EditDelete({data}) {
 	const [primatelj, setPrimatelj] = useState("");
 	const [iban, setIban] = useState("");
 	const [iznos, setIznos] = useState("");
-	var [rokPlacanja, setRokPlacanja] = useState("");
+	var [rokPlacanja, setRokPlacanja] = useState<string | null>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const [isErrorOpen, setIsErrorOpen] = useState(false);
 	const [isSuccessOpen, setSuccessOpen] = useState(false);
