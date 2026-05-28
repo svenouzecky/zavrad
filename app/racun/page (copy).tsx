@@ -5,12 +5,32 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 import { DecodeHintType, BarcodeFormat } from '@zxing/library';
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/supabase";
+import type { User } from "@supabase/supabase-js";
 
 export default function Home() {
 	const router = useRouter();
-	const videoRef = useRef(null);
+	const videoRef = useRef<HTMLVideoElement>(null);
   	const canvasRef = useRef(null);
   	const hints = new Map();
+  	
+  		type Racun = {
+	  id: any;
+	  user_id: any;
+	  cijena: any;
+	  platitelj: any;
+	  adresa_platitelj : any;
+	  primatelj: any;
+	  adresa_primatelj: any;
+	  iban: any;
+	  model: any;
+	  poziv_na_broj: any;
+	  sifra_namjene: any;
+	  opis_placanja: any;
+	  created_at: any;
+	  rok_placanja: string;
+	  kategorija: any;
+	  izvanredan: any;	
+	}
   	
 	const getEndOfMonth = () => {
 		const date = new Date();
@@ -57,8 +77,8 @@ export default function Home() {
   	const [isInfoOpen, setIsInfoOpen] = useState(false);
   	const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
 	const [deadlineDate, setDeadlineDate] = useState(getEndOfMonth());
-  	const [user, setUser] = useState(null);
-  	const [success, setSuccess] = useState({});
+  	const [user, setUser] = useState<User | null>(null);
+  	const [success, setSuccess] = useState<Racun>({} as Racun);
   	const [stream, setStream] = useState(null);
   	const [camError, setCamError] = useState(false);
 	
@@ -81,17 +101,21 @@ export default function Home() {
 	const pocniSnimanje = async () => {
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: "environment"} });
+			if (!videoRef.current) {
+				return;
+			}
 			videoRef.current.srcObject = stream;
+  			videoRef.current.srcObject = stream;
 			videoRef.current.style.display = 'block';
 			//videoRef.current.play();
 			//console.log(videoRef.current);
 			codeReader.decodeFromVideoElement(videoRef.current, (result, err) => {
 				if(result) {
 					console.log("Uspjesno uhvaceno: " + result);
-					result = result.toString();
+					var result1 = (result as any).text
 					let index;
-					var lines = result.split("\n");
-					var map = {};
+					var lines = result1?.split("\n") ?? [];
+					var map: { [key: string]: any } = {};
 					for(var i = 0; i < lines[2].length; i++) {
 						if(lines[2][i] != "0") {
 							index = i;
@@ -113,7 +137,7 @@ export default function Home() {
 					map.kategorija = grupe[lines[13]] ?? 'Ostalo';
 					map.rok_placanja = deadlineDate;
 					
-					setSuccess(map);
+					setSuccess(map as Racun);
 				}
 				//if(err){
 					//console.log("Greska! " + err.name);
@@ -132,8 +156,8 @@ export default function Home() {
 		.from("racuni")
 		.insert(success);
 		try {
-			if(error.message !== null){
-				alert(error.message);
+			if(error?.message !== null){
+				alert(error?.message);
 			}
 		}
 		catch (error) {
@@ -168,7 +192,7 @@ export default function Home() {
 								{Object.entries(success).filter(([key]) => key !== 'user_id').map(([key, value]) => (
 								    <div key={key} className="flex justify-between border-b border-gray-100 pb-2">
 								        <span className="text-sm font-medium text-gray-500">{lookupTable[key]}</span>
-								        <span className="text-sm text-gray-800">{value}</span>
+								        <span className="text-sm text-gray-800">{String(value ?? '')}</span>
 								    </div>
 								))}
 							</div>

@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/app/supabase";
 import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
 
@@ -18,7 +19,7 @@ export default function SettingsPage() {
       } else {
         setUser(data.user);
         setUsername(data.user.user_metadata.username);
-        setEmail(data.user.email);
+        setEmail(data.user.email ?? '');
       }
     };
     fetchUser();

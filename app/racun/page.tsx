@@ -5,10 +5,11 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 import { DecodeHintType, BarcodeFormat } from '@zxing/library';
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/app/supabase";
+import type { User } from "@supabase/supabase-js";
 
 export default function Home() {
 	const router = useRouter();
-	const videoRef = useRef(null);
+	const videoRef = useRef<HTMLVideoElement>(null);
   	const canvasRef = useRef(null);
   	const hints = new Map();
   	const searchParams = useSearchParams();
@@ -32,8 +33,27 @@ export default function Home() {
 		//console.log(editedSuccess);
 		setSuccess(editedSuccess);
 		setIsInfoOpen(false);
-        setSuccessOpen(true);
+        //setSuccessOpen(true);
 	};
+
+  		type Racun = {
+	  id: any;
+	  user_id: any;
+	  cijena: any;
+	  platitelj: any;
+	  adresa_platitelj : any;
+	  primatelj: any;
+	  adresa_primatelj: any;
+	  iban: any;
+	  model: any;
+	  poziv_na_broj: any;
+	  sifra_namjene: any;
+	  opis_placanja: any;
+	  created_at: any;
+	  rok_placanja: string;
+	  kategorija: any;
+	  izvanredan: any;	
+	}
 
   	const lookupTable = {
 		cijena: 'Cijena',
@@ -69,13 +89,13 @@ export default function Home() {
   	var resultVideo;
   	var idUs = "";
   	const [isEditing, setIsEditing] = useState(false);
-	const [editedSuccess, setEditedSuccess] = useState({});
+	const [editedSuccess, setEditedSuccess] = useState<Racun>({} as Racun);
   	const [isInfoOpen, setIsInfoOpen] = useState(false);
   	const [izvanredan, setIzvanRedan] = useState(false);
   	const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
 	const [deadlineDate, setDeadlineDate] = useState(getEndOfMonth());
-  	const [user, setUser] = useState(null);
-  	const [success, setSuccess] = useState({});
+  	const [user, setUser] = useState<User | null>(null);
+  	const [success, setSuccess] = useState<Racun>({} as Racun);
   	const [stream, setStream] = useState(null);
   	const [camError, setCamError] = useState(false);
   	
@@ -87,6 +107,7 @@ export default function Home() {
         router.push("/login");
       } else {
         const { data: users, error: error1 } = await supabase.from('korisnici').select("id").eq("email", data.user.email);
+        if (!users || users.length === 0) return;
         data.user.id = users[0].id;
         idUs = users[0].id;
         setUser(data.user);
@@ -103,17 +124,21 @@ export default function Home() {
 	const pocniSnimanje = async () => {
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: "environment"} });
+			if (!videoRef.current) {
+				return;
+			}
 			videoRef.current.srcObject = stream;
+  			videoRef.current.srcObject = stream;
 			videoRef.current.style.display = 'block';
 			//videoRef.current.play();
 			//console.log(videoRef.current);
 			codeReader.decodeFromVideoElement(videoRef.current, async (result, err) => {
 				if(result) {
 					//console.log("Uspjesno uhvaceno: " + result);
-					result = result.toString();
+					var result1 = (result as any).text
 					let index;
-					var lines = result.split("\n");
-					var map = {};
+					var lines = result1?.split("\n") ?? [];
+					var map: { [key: string]: any } = {};
 					for(var i = 0; i < lines[2].length; i++) {
 						if(lines[2][i] != "0") {
 							index = i;
@@ -134,7 +159,7 @@ export default function Home() {
 					map.kategorija = grupe[lines[12]] ?? 'Ostalo';
 					map.rok_placanja = deadlineDate;
 					
-					setSuccess(map);
+					setSuccess(map as Racun);
 				}
 				//if(err){
 					//console.log("Greska! " + err.name);
@@ -158,8 +183,8 @@ export default function Home() {
 		.insert(successNew);
 		alert("Uspjesno poslano!");
 		try {
-			if(error.message !== null){
-				alert(error.message);
+			if(error?.message !== null){
+				alert(error?.message);
 			}
 		}
 		catch (error) {
@@ -225,7 +250,7 @@ export default function Home() {
 						                    )
 						                ) : (
 						                    <span className="text-sm text-gray-800">
-						                        {key === 'kategorija' ? (value ?? 'Ostalo') : value}
+						                        {key === 'kategorija' ? (String(value ?? 'Ostalo')) : String(value ?? '')}
 						                    </span>
 						                )}
 						            </div>

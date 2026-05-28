@@ -8,6 +8,26 @@ import {
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/app/supabase";
+import type { User } from "@supabase/supabase-js";
+
+	type Racun = {
+	  id: any;
+	  cijena: any;
+	  platitelj: any;
+	  adresa_platitelj : any;
+	  primatelj: any;
+	  adresa_primatelj: any;
+	  iban: any;
+	  model: any;
+	  poziv_na_broj: any;
+	  sifra_namjene: any;
+	  opis_placanja: any;
+	  created_at: any;
+	  rok_placanja: string;
+	  kategorija: any;
+	  izvanredan: any;	
+	}
+
 
 	const grupe = {
 		CBTV: 'Kabelska televizija',
@@ -44,7 +64,7 @@ function InfoModal({ racun, onClose }) {
               <div key={key} className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="text-sm font-medium text-gray-500">{keyLabels[key] ?? key}</span>
                 <span className="text-sm text-gray-800">
-                  {key === 'kategorija' ? (grupe[value] ?? 'Ostalo') : (value ?? '-')}
+                  {key === 'kategorija' ? (grupe[value as string] ?? 'Ostalo') : (value ?? '-')}
                 </span>
               </div>
             ))}
@@ -69,7 +89,7 @@ export default function Dashboard() {
 	  if (!deadline) return false;
 	  const today = new Date();
 	  const d = new Date(deadline);
-	  const diff = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+	  const diff = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 	  return diff >= 0 && diff <= 7;
 	};
 
@@ -99,11 +119,11 @@ export default function Dashboard() {
 	};
 
 	const router = useRouter();
-  const [racuni, setRacuni] = useState([]);
+  const [racuni, setRacuni] = useState<Racun[]>([]);
   const [chartMode, setChartMode] = useState('all');
-  const [user, setUser] = useState(null);
+const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [infoRacun, setInfoRacun] = useState(null);
+  const [infoRacun, setInfoRacun] = useState<Racun | null>(null);
   const [izvanredniFilter, setIzvanredniFilter] = useState('all');
   const [activeSection, setActiveSection] = useState('rokovi7');
 
@@ -113,6 +133,7 @@ export default function Dashboard() {
       if (data.user) {
         setUser(data.user);
         const { data: users } = await supabase.from('korisnici').select('id').eq('email', data.user.email);
+        if (!users || users.length === 0) return;
         const { data: racuniData } = await supabase.from('racuni').select('id,cijena,platitelj,adresa_platitelj,primatelj,adresa_primatelj,iban,model,poziv_na_broj,sifra_namjene,opis_placanja,created_at,rok_placanja,kategorija,izvanredan').eq('user_id', users[0].id).order('rok_placanja');
         setRacuni(racuniData ?? []);
       }
@@ -126,7 +147,7 @@ export default function Dashboard() {
 
   // Monthly totals
   const monthlyTotals = racuni.reduce((acc, r) => {
-  	var month = "";
+  	var month = 0;
     if (!r.rok_placanja) {
     	month = new Date(r.created_at).getMonth();
     }
@@ -144,7 +165,7 @@ export default function Dashboard() {
 	  : 0;
 	  
 	const monthlyWithout = racuni.reduce((acc, r) => {
-  	var month = "";
+  	var month = 0;
     if (!r.rok_placanja) {
     	month = new Date(r.created_at).getMonth();
     }
@@ -193,7 +214,7 @@ export default function Dashboard() {
       acc[key] = (acc[key] ?? 0) + parseFloat(r.cijena ?? 0);
       return acc;
     }, {})
-  ).map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }));
+  ).map(([name, value]) => ({ name, value: parseFloat((value as number).toFixed(2)) }));
 
   // By adresa_platitelja
   const adresaData = Object.entries(
@@ -202,7 +223,7 @@ export default function Dashboard() {
       acc[key] = (acc[key] ?? 0) + parseFloat(r.cijena ?? 0);
       return acc;
     }, {})
-  ).map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }));
+  ).map(([name, value]) => ({ name, value: parseFloat((value as number).toFixed(2)) }));
 
   const totalSum = racuni.reduce((sum, r) => sum + parseFloat(r.cijena ?? 0), 0);
   const upcoming = racuni.filter((r) => isNearDeadline(r.rok_placanja));
@@ -324,7 +345,7 @@ export default function Dashboard() {
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Po kategoriji</h2>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
                     {categoryData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
                   <Tooltip formatter={(v) => [`${v.toFixed(2)} EUR`]} contentStyle={{ borderRadius: '8px', fontSize: 12 }} />
@@ -335,7 +356,7 @@ export default function Dashboard() {
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Po adresi platitelja</h2>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={adresaData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                  <Pie data={adresaData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
                     {adresaData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
                   <Tooltip formatter={(v) => [`${v.toFixed(2)} EUR`]} contentStyle={{ borderRadius: '8px', fontSize: 12 }} />
@@ -369,7 +390,7 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3">
                 {upcoming.map((r) => {
-                  const daysLeft = Math.ceil((new Date(r.rok_placanja) - new Date()) / (1000 * 60 * 60 * 24));
+                  const daysLeft = Math.ceil((new Date(r.rok_placanja).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                   return (
                     <div key={r.id} className="flex items-center justify-between rounded-lg bg-white border border-amber-100 px-4 py-3 shadow-sm">
                       <div className="min-w-0 flex-1">

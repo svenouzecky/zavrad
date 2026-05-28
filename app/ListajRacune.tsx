@@ -7,7 +7,26 @@ import EditDelete from './EditDelete';
 
 export default function ListajRacune({ sortKey, sortDir, search, searchKey, searchMin, searchMax } : any) {
 	
-	const [racuni, setRacuni] = useState([]);
+	type Racun = {
+	  id: any;
+	  user_id: any;
+	  cijena: any;
+	  platitelj: any;
+	  adresa_platitelj : any;
+	  primatelj: any;
+	  adresa_primatelj: any;
+	  iban: any;
+	  model: any;
+	  poziv_na_broj: any;
+	  sifra_namjene: any;
+	  opis_placanja: any;
+	  created_at: any;
+	  rok_placanja: string;
+	  kategorija: any;
+	  izvanredan: any;	
+	}
+	
+	const [racuni, setRacuni] = useState<Racun[]>([]);
 	const [user, setUser] = useState<User | null>(null);
 	
 	
@@ -27,7 +46,8 @@ export default function ListajRacune({ sortKey, sortDir, search, searchKey, sear
 		if (!deadline) return false;
 		const today = new Date();
 		const deadlineDate = new Date(deadline);
-		const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+		const diffDays = Math.ceil((deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+		//console.log(diffDays);
 		return diffDays <= 7 && diffDays >= 0;
 	};
 	
@@ -37,8 +57,9 @@ export default function ListajRacune({ sortKey, sortDir, search, searchKey, sear
       if (data.user) {
         setUser(data.user);             
 		const { data: users, error: error1 } = await supabase.from('korisnici').select("id").eq("email", data.user.email);
+		if (!users || users.length === 0) return;
         const { data: racuni, error: error2 } = await supabase.from('racuni').select().eq("user_id", users[0].id).order('rok_placanja');
-        setRacuni(racuni);
+        setRacuni(racuni ?? []);
       }
       
     };
@@ -53,8 +74,8 @@ export default function ListajRacune({ sortKey, sortDir, search, searchKey, sear
         
         if (['rok_placanja'].includes(sortKey)) {
         return sortDir === 'asc'
-            ? new Date(valA) - new Date(valB)
-            : new Date(valB) - new Date(valA);
+            ? new Date(valA).getTime() - new Date(valB).getTime()
+            : new Date(valB).getTime() - new Date(valA).getTime();
     	}
         
         if (typeof valA === 'number') {

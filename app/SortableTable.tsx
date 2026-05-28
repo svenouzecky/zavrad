@@ -6,21 +6,42 @@ import EditDelete from './EditDelete';
 import { supabase } from "@/app/supabase";
 
 const SortableTable = () => {
+
+	type Racun = {
+	  id: any;
+	  user_id: any;
+	  cijena: any;
+	  platitelj: any;
+	  adresa_platitelj : any;
+	  primatelj: any;
+	  adresa_primatelj: any;
+	  iban: any;
+	  model: any;
+	  poziv_na_broj: any;
+	  sifra_namjene: any;
+	  opis_placanja: any;
+	  created_at: any;
+	  rok_placanja: string;
+	  kategorija: any;
+	  izvanredan: any;	
+	}
+
 const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [search, setSearch] = useState('');
   const [searchKey, setSearchKey] = useState('primatelj');
   const [searchMin, setSearchMin] = useState('');
   const [searchMax, setSearchMax] = useState('');
-  const [racuni, setRacuni] = useState([]);
+  const [racuni, setRacuni] = useState<Racun[]>([]);
 
 	useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
       if (data.user) {            
 		const { data: users, error: error1 } = await supabase.from('korisnici').select("id").eq("email", data.user.email);
+		if (!users || users.length === 0) return;
         const { data: racuni, error: error2 } = await supabase.from('racuni').select().eq("user_id", users[0].id).order('rok_placanja');
-        setRacuni(racuni);
+        setRacuni(racuni ?? []);
       }
       
     };
@@ -59,7 +80,7 @@ const [sortKey, setSortKey] = useState(null);
     const valA = a[sortKey];
     const valB = b[sortKey];
     if (['rok_placanja'].includes(sortKey)) {
-      return sortDir === 'asc' ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
+      return sortDir === 'asc' ? new Date(valA).getTime() - new Date(valB).getTime() : new Date(valB).getTime() - new Date(valA).getTime();
     }
     if (typeof valA === 'number') {
       return sortDir === 'asc' ? valA - valB : valB - valA;
