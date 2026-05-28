@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/app/supabase";
 
-export default function EditDelete({data}:any) {
+export default function EditDelete({data}) {
 	const [user, setUser] = useState(null);
 	const [primatelj, setPrimatelj] = useState("");
 	const [iban, setIban] = useState("");
